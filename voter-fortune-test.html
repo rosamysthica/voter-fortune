@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voter Fortune - TEST MODE (Election Day Simulation)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            min-height: 100vh;
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        
+        .gradient-button {
+            background: linear-gradient(135deg, #f97316 0%, #c026d3 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .gradient-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(249, 115, 22, 0.4);
+        }
+        
+        .golden-glow {
+            box-shadow: 0 0 30px rgba(251, 191, 36, 0.6);
+            border: 2px solid #fbbf24;
+        }
+        
+        #wheelCanvas {
+            max-width: 100%;
+            height: auto;
+        }
+        
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: #f97316;
+            animation: confetti-fall 3s linear forwards;
+        }
+        
+        @keyframes confetti-fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+        
+        .pulse-animation {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: .5;
+            }
+        }
+
+        .test-banner {
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+            border: 2px solid #fca5a5;
+        }
+    </style>
+</head>
+<body class="p-4">
+    <!-- TEST MODE BANNER -->
+    <div class="test-banner p-4 mb-6 rounded-lg text-center max-w-4xl mx-auto">
+        <div class="text-yellow-300 font-bold text-xl mb-2">🧪 TEST MODE - Election Day Simulation</div>
+        <div class="text-white text-sm">This is simulating January 15, 2026. All features are active for testing.</div>
+    </div>
+
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-8 pt-6">
+            <div class="inline-block px-6 py-2 bg-yellow-500/20 border border-yellow-500/50 rounded-full mb-4">
+                <span class="text-yellow-400 font-bold text-sm">📅 January 15, 2026 Election</span>
+            </div>
+            <h1 class="text-4xl md:text-5xl font-bold text-white mb-2">🎯 Voter Fortune</h1>
+            <p class="text-gray-300 text-lg">Your Vote, Your Luck, Your Community!</p>
+        </div>
+
+        <!-- Registration Section -->
+        <div id="registrationSection" class="glass-card p-6 md:p-8 mb-6">
+            <h2 class="text-2xl font-bold text-white mb-2 text-center">Join the Community Draw</h2>
+            <p class="text-gray-400 text-center mb-6">Vote on January 15, 2026 & Win Prizes! 🎁</p>
+            <form id="registrationForm" class="space-y-4">
+                <div>
+                    <label class="block text-gray-300 mb-2 font-medium">Your Name</label>
+                    <input type="text" id="userName" required 
+                           class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-600 text-white focus:border-orange-500 focus:outline-none transition">
+                </div>
+                <div>
+                    <label class="block text-gray-300 mb-2 font-medium">Flat Number</label>
+                    <select id="flatNumber" required 
+                            class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-600 text-white focus:border-orange-500 focus:outline-none transition cursor-pointer">
+                        <option value="" disabled selected>Select your flat number</option>
+                        <option value="A001">A001</option>
+                        <option value="A101">A101</option>
+                        <option value="A102">A102</option>
+                        <option value="A103">A103</option>
+                        <option value="A104">A104</option>
+                        <option value="A201">A201</option>
+                        <option value="A202">A202</option>
+                        <option value="A203">A203</option>
+                        <option value="A204">A204</option>
+                        <option value="A301">A301</option>
+                        <option value="A302">A302</option>
+                        <option value="A303">A303</option>
+                        <option value="A304">A304</option>
+                        <option value="A401">A401</option>
+                        <option value="A402">A402</option>
+                        <option value="A403">A403</option>
+                        <option value="A404">A404</option>
+                        <option value="A501">A501</option>
+                        <option value="A502">A502</option>
+                        <option value="A503">A503</option>
+                        <option value="A504">A504</option>
+                        <option value="A601">A601</option>
+                        <option value="A701">A701</option>
+                        <option value="A702">A702</option>
+                        <option value="A703">A703</option>
+                        <option value="A704">A704</option>
+                        <option value="B001">B001</option>
+                        <option value="B101">B101</option>
+                        <option value="B102">B102</option>
+                        <option value="B103">B103</option>
+                        <option value="B104">B104</option>
+                        <option value="B201">B201</option>
+                        <option value="B202">B202</option>
+                        <option value="B203">B203</option>
+                        <option value="B204">B204</option>
+                        <option value="B301">B301</option>
+                        <option value="B302">B302</option>
+                        <option value="B303">B303</option>
+                        <option value="B304">B304</option>
+                        <option value="B401">B401</option>
+                        <option value="B402">B402</option>
+                        <option value="B403">B403</option>
+                        <option value="B404">B404</option>
+                        <option value="B501">B501</option>
+                        <option value="B502">B502</option>
+                        <option value="B503">B503</option>
+                        <option value="B504">B504</option>
+                        <option value="B601">B601</option>
+                        <option value="B602">B602</option>
+                        <option value="B603">B603</option>
+                        <option value="B604">B604</option>
+                        <option value="B701">B701</option>
+                        <option value="B702">B702</option>
+                        <option value="B703">B703</option>
+                        <option value="B704">B704</option>
+                    </select>
+                </div>
+                <div class="flex items-center space-x-3 p-4 rounded-lg bg-slate-800/50">
+                    <input type="checkbox" id="votedCheckbox" required 
+                           class="w-5 h-5 rounded border-gray-600 text-orange-500 focus:ring-orange-500">
+                    <label for="votedCheckbox" class="text-white font-medium cursor-pointer">
+                        ☝️ I have cast my vote on January 15, 2026
+                    </label>
+                </div>
+                <button type="submit" class="w-full gradient-button text-white font-bold py-4 rounded-lg text-lg">
+                    Enter the Draw 🎰
+                </button>
+            </form>
+        </div>
+
+        <!-- Dashboard Section (After Login) -->
+        <div id="dashboardSection" class="hidden">
+            <!-- Election Info Banner -->
+            <div class="glass-card p-6 mb-6 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border-yellow-500/30">
+                <div class="flex items-center justify-between flex-wrap gap-4">
+                    <div class="flex items-center space-x-4">
+                        <div class="text-5xl">🗳️</div>
+                        <div>
+                            <div class="text-yellow-400 font-bold text-lg">January 15, 2026 Election</div>
+                            <div class="text-gray-300">You're registered for prize draws at 12 PM & 7 PM</div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-green-400 font-bold text-2xl">✓ Voted</div>
+                        <div class="text-gray-400 text-sm">Good luck!</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Welcome Card -->
+            <div class="glass-card p-6 mb-6">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="text-xl font-bold text-white mb-1">Welcome, <span id="welcomeName"></span>!</h3>
+                        <p class="text-gray-400">Flat: <span id="welcomeFlat"></span></p>
+                    </div>
+                    <button onclick="logout()" class="px-4 py-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition">
+                        Logout
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="glass-card p-6">
+                    <div class="text-gray-400 text-sm mb-1">Flats Registered</div>
+                    <div class="text-3xl font-bold text-white">
+                        <span id="totalVoters">0</span><span class="text-gray-500">/54</span>
+                    </div>
+                    <div class="mt-2 bg-slate-700 rounded-full h-2">
+                        <div id="progressBar" class="bg-gradient-to-r from-orange-500 to-purple-600 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="glass-card p-6">
+                    <div class="text-gray-400 text-sm mb-1">Eligible for Current Prize</div>
+                    <div class="text-3xl font-bold text-green-400" id="eligibleVoters">0</div>
+                </div>
+                <div class="glass-card p-6">
+                    <div class="text-gray-400 text-sm mb-1">Your Flat Number</div>
+                    <div class="text-3xl font-bold text-orange-400" id="userFlat">-</div>
+                </div>
+            </div>
+
+            <!-- Countdown Timer -->
+            <div id="countdownSection" class="glass-card golden-glow p-8 mb-6 text-center">
+                <h3 class="text-2xl font-bold text-yellow-400 mb-4">⏰ Next Draw In</h3>
+                <div id="countdown" class="text-5xl font-bold text-white mb-2"></div>
+                <p class="text-gray-300" id="nextDrawTime"></p>
+            </div>
+
+            <!-- Spin Wheel Section -->
+            <div id="spinSection" class="glass-card p-6 md:p-8 mb-6 text-center hidden">
+                <h3 class="text-2xl font-bold text-white mb-6">🎡 Lucky Draw Time!</h3>
+                <div class="flex justify-center mb-6">
+                    <canvas id="wheelCanvas" width="400" height="400"></canvas>
+                </div>
+                <button id="spinButton" onclick="spinWheel()" 
+                        class="gradient-button text-white font-bold py-4 px-8 rounded-lg text-lg">
+                    See Winner 🎯
+                </button>
+                <div id="winnerAnnouncement" class="hidden mt-6 p-6 bg-green-500/20 rounded-lg border-2 border-green-500">
+                    <h4 class="text-2xl font-bold text-green-400 mb-2">🎉 Congratulations!</h4>
+                    <p class="text-white text-xl">Winner: <span id="winnerName" class="font-bold"></span></p>
+                    <p class="text-gray-300">Flat: <span id="winnerFlat" class="font-bold"></span></p>
+                </div>
+            </div>
+
+            <!-- Winner Gallery -->
+            <div id="winnerGallery" class="glass-card p-6 md:p-8 hidden">
+                <h3 class="text-2xl font-bold text-white mb-6">🏆 Today's Winners</h3>
+                <div id="winnersContainer" class="space-y-4"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // TEST MODE: Force election day simulation
+        const TEST_MODE = true;
+        const ELECTION_DATE = new Date('2026-01-15');
+        
+        let appData = {
+            users: JSON.parse(localStorage.getItem('voterFortuneTestUsers') || '[]'),
+            currentUser: JSON.parse(localStorage.getItem('currentTestUser') || 'null'),
+            winners: JSON.parse(localStorage.getItem('testWinners') || '{}'),
+            lastDrawDate: localStorage.getItem('testLastDrawDate') || ''
+        };
+
+        // Check if new day and reset
+        const today = new Date().toDateString();
+        if (appData.lastDrawDate !== today) {
+            appData.winners = {};
+            appData.lastDrawDate = today;
+            localStorage.setItem('testWinners', JSON.stringify({}));
+            localStorage.setItem('testLastDrawDate', today);
+        }
+
+        // Page Load - TEST MODE always shows election day
+        window.onload = function() {
+            if (appData.currentUser) {
+                showDashboard();
+            }
+        };
+
+        // Registration Form Submit
+        document.getElementById('registrationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('userName').value.trim();
+            const flat = document.getElementById('flatNumber').value;
+            const voted = document.getElementById('votedCheckbox').checked;
+            
+            if (!voted) {
+                alert('Please confirm you have voted!');
+                return;
+            }
+            
+            // Check if flat number already registered
+            const existing = appData.users.find(u => u.flat === flat);
+            if (existing) {
+                if (confirm(`Flat ${flat} is already registered under the name "${existing.name}". Would you like to access that account?`)) {
+                    appData.currentUser = existing;
+                    localStorage.setItem('currentTestUser', JSON.stringify(appData.currentUser));
+                    showDashboard();
+                }
+                return;
+            }
+            
+            // Create new user
+            const newUser = {
+                id: Date.now(),
+                name: name,
+                flat: flat,
+                registeredAt: new Date().toISOString(),
+                voted: true
+            };
+            appData.users.push(newUser);
+            appData.currentUser = newUser;
+            localStorage.setItem('voterFortuneTestUsers', JSON.stringify(appData.users));
+            localStorage.setItem('currentTestUser', JSON.stringify(appData.currentUser));
+            showDashboard();
+        });
+
+        function showDashboard() {
+            document.getElementById('registrationSection').classList.add('hidden');
+            document.getElementById('dashboardSection').classList.remove('hidden');
+            
+            document.getElementById('welcomeName').textContent = appData.currentUser.name;
+            document.getElementById('welcomeFlat').textContent = appData.currentUser.flat;
+            
+            updateStats();
+            updateCountdown();
+            checkDrawTime();
+            displayWinners();
+            
+            setInterval(updateCountdown, 1000);
+            setInterval(checkDrawTime, 60000);
+        }
+
+        function updateStats() {
+            const totalFlats = 54;
+            const registeredFlats = appData.users.length;
+            const percentage = (registeredFlats / totalFlats) * 100;
+            
+            document.getElementById('totalVoters').textContent = registeredFlats;
+            document.getElementById('eligibleVoters').textContent = appData.users.filter(u => u.voted).length;
+            document.getElementById('progressBar').style.width = percentage + '%';
+            document.getElementById('userFlat').textContent = appData.currentUser.flat;
+        }
+
+        function updateCountdown() {
+            const now = new Date();
+            const currentHour = now.getHours();
+            const currentMinute = now.getMinutes();
+            
+            let targetHour;
+            if (currentHour < 12) {
+                targetHour = 12;
+            } else if (currentHour < 19) {
+                targetHour = 19;
+            } else {
+                // Next draw is tomorrow at noon
+                const tomorrow = new Date(now);
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                tomorrow.setHours(12, 0, 0, 0);
+                displayCountdown(tomorrow - now);
+                document.getElementById('nextDrawTime').textContent = 'Tomorrow at 12:00 PM';
+                return;
+            }
+            
+            const target = new Date(now);
+            target.setHours(targetHour, 0, 0, 0);
+            
+            const diff = target - now;
+            displayCountdown(diff);
+            document.getElementById('nextDrawTime').textContent = `Today at ${targetHour === 12 ? '12:00 PM' : '7:00 PM'}`;
+        }
+
+        function displayCountdown(milliseconds) {
+            const hours = Math.floor(milliseconds / (1000 * 60 * 60));
+            const minutes = Math.floor((milliseconds % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((milliseconds % (1000 * 60)) / 1000);
+            
+            document.getElementById('countdown').textContent = 
+                `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        function checkDrawTime() {
+            const now = new Date();
+            const currentHour = now.getHours();
+            const drawSlot = currentHour >= 12 && currentHour < 19 ? 'noon' : currentHour >= 19 ? 'evening' : null;
+            
+            if (drawSlot && !appData.winners[drawSlot]) {
+                document.getElementById('spinSection').classList.remove('hidden');
+                document.getElementById('countdownSection').classList.add('hidden');
+            }
+        }
+
+        // Wheel Drawing
+        let canvas, ctx, participants, currentAngle = 0, isSpinning = false;
+
+        function spinWheel() {
+            if (isSpinning) return;
+            
+            const now = new Date();
+            const currentHour = now.getHours();
+            const drawSlot = currentHour >= 12 && currentHour < 19 ? 'noon' : 'evening';
+            
+            // Check if winner already selected
+            if (appData.winners[drawSlot]) {
+                showWinner(appData.winners[drawSlot]);
+                return;
+            }
+            
+            canvas = document.getElementById('wheelCanvas');
+            ctx = canvas.getContext('2d');
+            participants = appData.users.filter(u => u.voted);
+            
+            if (participants.length === 0) {
+                alert('No eligible participants yet!');
+                return;
+            }
+            
+            isSpinning = true;
+            document.getElementById('spinButton').disabled = true;
+            document.getElementById('spinButton').textContent = 'Spinning...';
+            
+            // Select winner deterministically
+            const winnerIndex = Math.floor(Math.random() * participants.length);
+            const winner = participants[winnerIndex];
+            
+            // Save winner
+            appData.winners[drawSlot] = winner;
+            localStorage.setItem('testWinners', JSON.stringify(appData.winners));
+            
+            // Animate spin
+            const spinDuration = 5000;
+            const startTime = Date.now();
+            const targetAngle = (360 * 5) + (winnerIndex * (360 / participants.length));
+            
+            function animate() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / spinDuration, 1);
+                
+                // Easing function
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+                currentAngle = targetAngle * easeOut;
+                
+                drawWheel();
+                
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    isSpinning = false;
+                    showWinner(winner);
+                    createConfetti();
+                }
+            }
+            
+            animate();
+        }
+
+        function drawWheel() {
+            if (!canvas || !ctx) return;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = 180;
+            const sliceAngle = (2 * Math.PI) / participants.length;
+            
+            participants.forEach((participant, index) => {
+                const startAngle = (sliceAngle * index) - (currentAngle * Math.PI / 180);
+                const endAngle = startAngle + sliceAngle;
+                
+                // Draw slice
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+                ctx.closePath();
+                
+                // Alternate colors
+                ctx.fillStyle = index % 2 === 0 ? '#f97316' : '#c026d3';
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // Draw text
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(startAngle + sliceAngle / 2);
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 14px Inter';
+                ctx.fillText(participant.flat, radius / 2, 5);
+                ctx.restore();
+            });
+            
+            // Draw center circle
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 20, 0, 2 * Math.PI);
+            ctx.fillStyle = '#1e293b';
+            ctx.fill();
+            ctx.strokeStyle = '#fbbf24';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            
+            // Draw pointer
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY - radius - 10);
+            ctx.lineTo(centerX - 10, centerY - radius - 30);
+            ctx.lineTo(centerX + 10, centerY - radius - 30);
+            ctx.closePath();
+            ctx.fillStyle = '#fbbf24';
+            ctx.fill();
+        }
+
+        function showWinner(winner) {
+            document.getElementById('winnerName').textContent = winner.name;
+            document.getElementById('winnerFlat').textContent = winner.flat;
+            document.getElementById('winnerAnnouncement').classList.remove('hidden');
+            document.getElementById('spinButton').classList.add('hidden');
+            
+            displayWinners();
+        }
+
+        function createConfetti() {
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * window.innerWidth + 'px';
+                    confetti.style.background = ['#f97316', '#c026d3', '#fbbf24', '#10b981'][Math.floor(Math.random() * 4)];
+                    confetti.style.animationDelay = Math.random() * 0.5 + 's';
+                    document.body.appendChild(confetti);
+                    
+                    setTimeout(() => confetti.remove(), 3000);
+                }, i * 30);
+            }
+        }
+
+        function displayWinners() {
+            const container = document.getElementById('winnersContainer');
+            const gallery = document.getElementById('winnerGallery');
+            
+            if (Object.keys(appData.winners).length === 0) {
+                gallery.classList.add('hidden');
+                return;
+            }
+            
+            gallery.classList.remove('hidden');
+            container.innerHTML = '';
+            
+            ['noon', 'evening'].forEach(slot => {
+                if (appData.winners[slot]) {
+                    const winner = appData.winners[slot];
+                    const div = document.createElement('div');
+                    div.className = 'glass-card p-4 flex items-center justify-between';
+                    div.innerHTML = `
+                        <div>
+                            <div class="text-yellow-400 font-medium">${slot === 'noon' ? '12:00 PM Draw' : '7:00 PM Draw'}</div>
+                            <div class="text-white font-bold text-lg">${winner.name}</div>
+                            <div class="text-gray-400">Flat: ${winner.flat}</div>
+                        </div>
+                        <div class="text-4xl">🏆</div>
+                    `;
+                    container.appendChild(div);
+                }
+            });
+        }
+
+        function logout() {
+            localStorage.removeItem('currentTestUser');
+            appData.currentUser = null;
+            location.reload();
+        }
+    </script>
+</body>
+</html>
