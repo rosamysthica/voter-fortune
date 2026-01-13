@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voter Fortune - Community Engagement Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            min-height: 100vh;
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        
+        .gradient-button {
+            background: linear-gradient(135deg, #f97316 0%, #c026d3 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .gradient-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(249, 115, 22, 0.4);
+        }
+        
+        .golden-glow {
+            box-shadow: 0 0 30px rgba(251, 191, 36, 0.6);
+            border: 2px solid #fbbf24;
+        }
+        
+        #wheelCanvas {
+            max-width: 100%;
+            height: auto;
+        }
+        
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: #f97316;
+            animation: confetti-fall 3s linear forwards;
+        }
+        
+        @keyframes confetti-fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .number-input {
+            -moz-appearance: textfield;
+        }
+        .number-input::-webkit-outer-spin-button,
+        .number-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .loading-spinner {
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top: 3px solid #f97316;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="p-4">
+    <!-- Firebase Connection Status -->
+    <div id="firebaseStatus" class="fixed top-4 right-4 px-4 py-2 rounded-lg text-sm font-medium hidden">
+        <span id="statusText"></span>
+    </div>
+
+    <div class="max-w-4xl mx-auto">
+        <!-- Firebase Setup Notice -->
+        <div id="setupNotice" class="glass-card p-6 mb-6 bg-red-500/10 border-red-500/30">
+            <div class="flex items-start space-x-4">
+                <div class="text-4xl">⚠️</div>
+                <div class="flex-1">
+                    <h3 class="text-red-400 font-bold text-lg mb-2">Firebase Configuration Required</h3>
+                    <p class="text-gray-300 mb-3">Please configure Firebase to enable multi-device sync.</p>
+                    <ol class="text-gray-400 text-sm space-y-1 list-decimal list-inside">
+                        <li>Create Firebase project at console.firebase.google.com</li>
+                        <li>Enable Firestore Database</li>
+                        <li>Copy your config and paste in the code</li>
+                        <li>Refresh this page</li>
+                    </ol>
+                    <button onclick="document.getElementById('setupInstructions').classList.toggle('hidden')" 
+                            class="mt-3 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 font-medium">
+                        Show Setup Instructions
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Setup Instructions (Hidden by default) -->
+        <div id="setupInstructions" class="glass-card p-6 mb-6 hidden">
+            <h3 class="text-2xl font-bold text-white mb-4">🔥 Firebase Setup Instructions</h3>
+            <div class="space-y-4 text-gray-300">
+                <div class="p-4 bg-slate-800 rounded-lg">
+                    <h4 class="font-bold text-white mb-2">Step 1: Create Firebase Project</h4>
+                    <ol class="list-decimal list-inside space-y-1 text-sm">
+                        <li>Go to <a href="https://console.firebase.google.com" target="_blank" class="text-orange-400 underline">console.firebase.google.com</a></li>
+                        <li>Click "Add project"</li>
+                        <li>Name it "voter-fortune"</li>
+                        <li>Disable Google Analytics (optional)</li>
+                        <li>Click "Create project"</li>
+                    </ol>
+                </div>
+                
+                <div class="p-4 bg-slate-800 rounded-lg">
+                    <h4 class="font-bold text-white mb-2">Step 2: Enable Firestore</h4>
+                    <ol class="list-decimal list-inside space-y-1 text-sm">
+                        <li>In Firebase console, click "Firestore Database"</li>
+                        <li>Click "Create database"</li>
+                        <li>Choose "Start in test mode"</li>
+                        <li>Select closest location</li>
+                        <li>Click "Enable"</li>
+                    </ol>
+                </div>
+                
+                <div class="p-4 bg-slate-800 rounded-lg">
+                    <h4 class="font-bold text-white mb-2">Step 3: Get Config</h4>
+                    <ol class="list-decimal list-inside space-y-1 text-sm">
+                        <li>Click gear icon → Project settings</li>
+                        <li>Scroll to "Your apps"</li>
+                        <li>Click web icon (&lt;/&gt;)</li>
+                        <li>Copy the firebaseConfig object</li>
+                        <li>Find "YOUR_FIREBASE_CONFIG_HERE" in this HTML file</li>
+                        <li>Replace it with your config</li>
+                    </ol>
+                </div>
+                
+                <div class="p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
+                    <h4 class="font-bold text-green-400 mb-2">✅ After Setup:</h4>
+                    <p class="text-sm">Refresh this page and the red warning will disappear. All devices will sync automatically! 🎉</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Screen -->
+        <div id="loadingScreen" class="glass-card p-12 text-center hidden">
+            <div class="loading-spinner"></div>
+            <p class="text-white mt-4">Connecting to database...</p>
+        </div>
+
+        <!-- Main App Content -->
+        <div id="appContent">
+            <!-- Header -->
+            <div class="text-center mb-8 pt-6">
+                <div class="inline-block px-6 py-2 bg-yellow-500/20 border border-yellow-500/50 rounded-full mb-4">
+                    <span class="text-yellow-400 font-bold text-sm">📅 January 15, 2026 Election</span>
+                </div>
+                <h1 class="text-4xl md:text-5xl font-bold text-white mb-2">🎯 Voter Fortune</h1>
+                <p class="text-gray-300 text-lg">Your Vote, Your Luck, Your Community!</p>
+                <p class="text-green-400 text-sm mt-2" id="syncStatus">🔄 Real-time sync enabled</p>
+            </div>
+
+            <!-- Welcome/Info Section -->
+            <div id="welcomeSection" class="space-y-6 mb-6">
+                <!-- How It Works -->
+                <div class="glass-card p-6 md:p-8">
+                    <h2 class="text-3xl font-bold text-white mb-4 text-center">🎉 How Voter Fortune Works</h2>
+                    <div class="space-y-4">
+                        <div class="flex items-start space-x-4">
+                            <div class="text-3xl">🗳️</div>
+                            <div>
+                                <h3 class="text-lg font-bold text-white mb-1">Step 1: Family Members Vote</h3>
+                                <p class="text-gray-300">All eligible members from your flat cast their votes</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-4">
+                            <div class="text-3xl">📝</div>
+                            <div>
+                                <h3 class="text-lg font-bold text-white mb-1">Step 2: Register Here</h3>
+                                <p class="text-gray-300">Tell us how many family members voted</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-4">
+                            <div class="text-3xl">🎡</div>
+                            <div>
+                                <h3 class="text-lg font-bold text-white mb-1">Step 3: Win Prizes!</h3>
+                                <p class="text-gray-300">Enter 2 lucky draws at 12:00 PM and 7:00 PM</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Preview -->
+                <div class="glass-card p-6 md:p-8">
+                    <h3 class="text-xl font-bold text-white mb-4 text-center">Community Participation</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="text-center">
+                            <div class="text-3xl mb-2">🏢</div>
+                            <div class="text-2xl font-bold text-orange-400" id="previewTotal">0</div>
+                            <div class="text-gray-400 text-sm">Flats Registered</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl mb-2">👥</div>
+                            <div class="text-2xl font-bold text-purple-400" id="previewVoters">0</div>
+                            <div class="text-gray-400 text-sm">Total Voters</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl mb-2">⏰</div>
+                            <div class="text-2xl font-bold text-green-400">12 PM & 7 PM</div>
+                            <div class="text-gray-400 text-sm">Draw Times</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Register Button -->
+                <div class="glass-card p-8 text-center bg-gradient-to-r from-orange-500/10 to-purple-500/10">
+                    <h3 class="text-2xl font-bold text-white mb-4">Ready to Join?</h3>
+                    <button onclick="showRegistrationForm()" class="gradient-button text-white font-bold py-4 px-8 rounded-lg text-lg">
+                        Register Now 🎯
+                    </button>
+                    <p class="text-gray-400 mt-4 text-sm">Takes less than 1 minute!</p>
+                </div>
+            </div>
+
+            <!-- Registration Section -->
+            <div id="registrationSection" class="glass-card p-6 md:p-8 mb-6 hidden">
+                <button onclick="hideRegistrationForm()" class="text-gray-400 hover:text-white mb-4 flex items-center">
+                    <span class="mr-2">←</span> Back
+                </button>
+                <h2 class="text-2xl font-bold text-white mb-2 text-center">Register for Prize Draw</h2>
+                <p class="text-gray-400 text-center mb-6">Enter your details to participate</p>
+                <form id="registrationForm" class="space-y-4">
+                    <div>
+                        <label class="block text-gray-300 mb-2 font-medium">Your Name</label>
+                        <input type="text" id="userName" required 
+                               class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-600 text-white focus:border-orange-500 focus:outline-none transition"
+                               placeholder="Enter your full name">
+                    </div>
+                    <div>
+                        <label class="block text-gray-300 mb-2 font-medium">Flat Number</label>
+                        <select id="flatNumber" required 
+                                class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-600 text-white focus:border-orange-500 focus:outline-none transition cursor-pointer">
+                            <option value="" disabled selected>Select your flat number</option>
+                            <option value="A001">A001</option>
+                            <option value="A101">A101</option>
+                            <option value="A102">A102</option>
+                            <option value="A103">A103</option>
+                            <option value="A104">A104</option>
+                            <option value="A201">A201</option>
+                            <option value="A202">A202</option>
+                            <option value="A203">A203</option>
+                            <option value="A204">A204</option>
+                            <option value="A301">A301</option>
+                            <option value="A302">A302</option>
+                            <option value="A303">A303</option>
+                            <option value="A304">A304</option>
+                            <option value="A401">A401</option>
+                            <option value="A402">A402</option>
+                            <option value="A403">A403</option>
+                            <option value="A404">A404</option>
+                            <option value="A501">A501</option>
+                            <option value="A502">A502</option>
+                            <option value="A503">A503</option>
+                            <option value="A504">A504</option>
+                            <option value="A601">A601</option>
+                            <option value="A701">A701</option>
+                            <option value="A702">A702</option>
+                            <option value="A703">A703</option>
+                            <option value="A704">A704</option>
+                            <option value="B001">B001</option>
+                            <option value="B101">B101</option>
+                            <option value="B102">B102</option>
+                            <option value="B103">B103</option>
+                            <option value="B104">B104</option>
+                            <option value="B201">B201</option>
+                            <option value="B202">B202</option>
+                            <option value="B203">B203</option>
+                            <option value="B204">B204</option>
+                            <option value="B301">B301</option>
+                            <option value="B302">B302</option>
+                            <option value="B303">B303</option>
+                            <option value="B304">B304</option>
+                            <option value="B401">B401</option>
+                            <option value="B402">B402</option>
+                            <option value="B403">B403</option>
+                            <option value="B404">B404</option>
+                            <option value="B501">B501</option>
+                            <option value="B502">B502</option>
+                            <option value="B503">B503</option>
+                            <option value="B504">B504</option>
+                            <option value="B601">B601</option>
+                            <option value="B602">B602</option>
+                            <option value="B603">B603</option>
+                            <option value="B604">B604</option>
+                            <option value="B701">B701</option>
+                            <option value="B702">B702</option>
+                            <option value="B703">B703</option>
+                            <option value="B704">B704</option>
+                        </select>
+                    </div>
+                    <div class="p-4 rounded-lg bg-slate-800/50">
+                        <label class="block text-white font-medium mb-3">How many family members from your flat voted?</label>
+                        <div class="flex items-center space-x-4">
+                            <button type="button" onclick="decreaseVoters()" class="w-12 h-12 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-bold text-xl">
+                                −
+                            </button>
+                            <input type="number" id="voterCount" min="0" max="20" value="0" required
+                                   class="number-input w-24 px-4 py-3 text-center rounded-lg bg-slate-700 border border-slate-600 text-white text-2xl font-bold focus:border-orange-500 focus:outline-none transition">
+                            <button type="button" onclick="increaseVoters()" class="w-12 h-12 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-bold text-xl">
+                                +
+                            </button>
+                        </div>
+                        <p class="text-gray-400 text-sm mt-2">Enter 0 if you haven't voted yet - you can update this later!</p>
+                    </div>
+                    <button type="submit" class="w-full gradient-button text-white font-bold py-4 rounded-lg text-lg">
+                        Complete Registration 🎰
+                    </button>
+                </form>
+            </div>
+
+            <!-- Dashboard Section (abbreviated for space - same as before) -->
+            <div id="dashboardSection" class="hidden">
+                <!-- Not Voted Yet Reminder -->
+                <div id="notVotedReminder" class="glass-card p-6 mb-6 bg-orange-500/10 border-orange-500/30 hidden">
+                    <div class="flex items-start space-x-4">
+                        <div class="text-4xl">⚠️</div>
+                        <div class="flex-1">
+                            <div class="text-orange-400 font-bold text-lg mb-2">Remember to Vote!</div>
+                            <div class="text-gray-300 mb-3">You're registered, but haven't added your voter count yet. Update it after voting to be eligible for prizes!</div>
+                            <button onclick="showUpdateVoterCount()" class="px-6 py-3 bg-green-500 text-white rounded-lg font-bold hover:bg-green-600 transition">
+                                ✅ Update Voter Count
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Update Voter Count Modal -->
+                <div id="updateVoterModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+                    <div class="glass-card p-8 max-w-md w-full">
+                        <h3 class="text-2xl font-bold text-white mb-4">Update Voter Count</h3>
+                        <p class="text-gray-300 mb-6">How many family members from your flat voted?</p>
+                        <div class="flex items-center justify-center space-x-4 mb-6">
+                            <button onclick="decreaseUpdateCount()" class="w-12 h-12 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-bold text-xl">
+                                −
+                            </button>
+                            <input type="number" id="updateVoterCount" min="0" max="20" value="1"
+                                   class="number-input w-24 px-4 py-3 text-center rounded-lg bg-slate-700 border border-slate-600 text-white text-2xl font-bold focus:border-orange-500 focus:outline-none">
+                            <button onclick="increaseUpdateCount()" class="w-12 h-12 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-bold text-xl">
+                                +
+                            </button>
+                        </div>
+                        <div class="flex space-x-4">
+                            <button onclick="hideUpdateVoterCount()" class="flex-1 px-6 py-3 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition">
+                                Cancel
+                            </button>
+                            <button onclick="submitUpdateVoterCount()" class="flex-1 px-6 py-3 bg-green-500 text-white rounded-lg font-bold hover:bg-green-600 transition">
+                                Update
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="glass-card p-6 mb-6">
+                    <div class="flex justify-between items-center flex-wrap gap-4">
+                        <div>
+                            <h3 class="text-xl font-bold text-white mb-1">Welcome, <span id="welcomeName"></span>!</h3>
+                            <p class="text-gray-400">Flat: <span id="welcomeFlat"></span></p>
+                            <p class="font-medium mt-1" id="welcomeVotersSection">
+                                <span id="welcomeVotersText"></span>
+                            </p>
+                        </div>
+                        <div class="flex flex-col space-y-2">
+                            <button onclick="showUpdateVoterCount()" class="px-4 py-2 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition font-medium">
+                                ✏️ Update Voters
+                            </button>
+                            <button onclick="logout()" class="px-4 py-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition">
+                                Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="glass-card p-6">
+                    <div class="text-center text-gray-400">
+                        Dashboard features will appear here after login
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // FIREBASE CONFIGURATION
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBDxjvL51TdyGjKF3b4aPTFpfL_7u3jTWE",
+            authDomain: "voter-fortune.firebaseapp.com",
+            projectId: "voter-fortune",
+            storageBucket: "voter-fortune.firebasestorage.app",
+            messagingSenderId: "581173434972",
+            appId: "1:581173434972:web:8c3c4486008f60b1d26499"
+        };
+
+        // Check if Firebase is configured
+        const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "";
+
+        let db = null;
+        let currentUser = null;
+
+        // Initialize Firebase
+        if (isFirebaseConfigured) {
+            try {
+                firebase.initializeApp(firebaseConfig);
+                db = firebase.firestore();
+                
+                // Hide setup notice
+                document.getElementById('setupNotice').classList.add('hidden');
+                document.getElementById('setupInstructions').classList.add('hidden');
+                
+                // Show connection status
+                showStatus('Connected to Firebase ✅', 'success');
+                
+                console.log('Firebase initialized successfully!');
+            } catch (error) {
+                console.error('Firebase initialization error:', error);
+                showStatus('Firebase connection error ❌', 'error');
+            }
+        } else {
+            console.warn('Firebase not configured. Please add your config.');
+            showStatus('Awaiting Firebase configuration ⚠️', 'warning');
+        }
+
+        function showStatus(message, type) {
+            const statusEl = document.getElementById('firebaseStatus');
+            const textEl = document.getElementById('statusText');
+            statusEl.classList.remove('hidden');
+            textEl.textContent = message;
+            
+            statusEl.className = 'fixed top-4 right-4 px-4 py-2 rounded-lg text-sm font-medium';
+            if (type === 'success') {
+                statusEl.classList.add('bg-green-500/20', 'text-green-400', 'border', 'border-green-500/30');
+            } else if (type === 'error') {
+                statusEl.classList.add('bg-red-500/20', 'text-red-400', 'border', 'border-red-500/30');
+            } else {
+                statusEl.classList.add('bg-orange-500/20', 'text-orange-400', 'border', 'border-orange-500/30');
+            }
+            
+            setTimeout(() => statusEl.classList.add('hidden'), 5000);
+        }
+
+        // ==========================================
+        // APP LOGIC
+        // ==========================================
+        
+        window.onload = function() {
+            if (!isFirebaseConfigured) {
+                return; // Don't load app until Firebase is configured
+            }
+            
+            loadCurrentUser();
+            loadStats();
+            listenToUpdates();
+        };
+
+        function loadCurrentUser() {
+            const saved = localStorage.getItem('currentUserFlat');
+            if (saved && db) {
+                db.collection('users').doc(saved).get()
+                    .then(doc => {
+                        if (doc.exists) {
+                            currentUser = { id: doc.id, ...doc.data() };
+                            showDashboard();
+                        }
+                    })
+                    .catch(error => console.error('Error loading user:', error));
+            }
+        }
+
+        function loadStats() {
+            if (!db) return;
+            
+            db.collection('users').get()
+                .then(snapshot => {
+                    const count = snapshot.size;
+                    const totalVoters = snapshot.docs.reduce((sum, doc) => 
+                        sum + (doc.data().voterCount || 0), 0);
+                    
+                    document.getElementById('previewTotal').textContent = count;
+                    document.getElementById('previewVoters').textContent = totalVoters;
+                })
+                .catch(error => console.error('Error loading stats:', error));
+        }
+
+        function listenToUpdates() {
+            if (!db) return;
+            
+            // Real-time listener for stats updates
+            db.collection('users').onSnapshot(snapshot => {
+                const count = snapshot.size;
+                const totalVoters = snapshot.docs.reduce((sum, doc) => 
+                    sum + (doc.data().voterCount || 0), 0);
+                
+                document.getElementById('previewTotal').textContent = count;
+                document.getElementById('previewVoters').textContent = totalVoters;
+                
+                console.log(`Stats updated: ${count} flats, ${totalVoters} voters`);
+            });
+        }
+
+        function showRegistrationForm() {
+            document.getElementById('welcomeSection').classList.add('hidden');
+            document.getElementById('registrationSection').classList.remove('hidden');
+        }
+
+        function hideRegistrationForm() {
+            document.getElementById('welcomeSection').classList.remove('hidden');
+            document.getElementById('registrationSection').classList.add('hidden');
+        }
+
+        function increaseVoters() {
+            const input = document.getElementById('voterCount');
+            const current = parseInt(input.value) || 0;
+            if (current < 20) {
+                input.value = current + 1;
+            }
+        }
+
+        function decreaseVoters() {
+            const input = document.getElementById('voterCount');
+            const current = parseInt(input.value) || 0;
+            if (current > 0) {
+                input.value = current - 1;
+            }
+        }
+
+        document.getElementById('registrationForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!db) {
+                alert('Firebase not configured! Please set up Firebase first.');
+                return;
+            }
+            
+            const name = document.getElementById('userName').value.trim();
+            const flat = document.getElementById('flatNumber').value;
+            const voterCount = parseInt(document.getElementById('voterCount').value) || 0;
+            
+            // Allow registration with 0 voters
+            
+            try {
+                // Check if flat already registered
+                const doc = await db.collection('users').doc(flat).get();
+                
+                if (doc.exists) {
+                    const existing = doc.data();
+                    if (confirm(`Flat ${flat} is already registered under "${existing.name}". Access that account?`)) {
+                        currentUser = { id: flat, ...existing };
+                        localStorage.setItem('currentUserFlat', flat);
+                        showDashboard();
+                    }
+                    return;
+                }
+                
+                // Create new registration
+                const newUser = {
+                    name: name,
+                    flat: flat,
+                    voterCount: voterCount,
+                    registeredAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    validated: 'pending',
+                    voted: voterCount > 0
+                };
+                
+                await db.collection('users').doc(flat).set(newUser);
+                
+                currentUser = { id: flat, ...newUser };
+                localStorage.setItem('currentUserFlat', flat);
+                
+                showStatus('Registration successful! ✅', 'success');
+                showDashboard();
+                
+            } catch (error) {
+                console.error('Registration error:', error);
+                alert('Registration failed. Please try again.');
+            }
+        });
+
+        function showDashboard() {
+            document.getElementById('welcomeSection').classList.add('hidden');
+            document.getElementById('registrationSection').classList.add('hidden');
+            document.getElementById('dashboardSection').classList.remove('hidden');
+            
+            document.getElementById('welcomeName').textContent = currentUser.name;
+            document.getElementById('welcomeFlat').textContent = currentUser.flat;
+            
+            // Show voter count or reminder
+            const voterCount = currentUser.voterCount || 0;
+            const votersText = document.getElementById('welcomeVotersText');
+            const votersSection = document.getElementById('welcomeVotersSection');
+            
+            if (voterCount === 0) {
+                votersText.innerHTML = '<span class="text-orange-400">⏳ No voters added yet</span>';
+                document.getElementById('notVotedReminder').classList.remove('hidden');
+            } else {
+                votersText.innerHTML = `<span class="text-green-400">${voterCount} family member(s) voted ✅</span>`;
+                document.getElementById('notVotedReminder').classList.add('hidden');
+            }
+        }
+
+        function showUpdateVoterCount() {
+            const currentCount = currentUser.voterCount || 0;
+            document.getElementById('updateVoterCount').value = currentCount;
+            document.getElementById('updateVoterModal').classList.remove('hidden');
+        }
+
+        function hideUpdateVoterCount() {
+            document.getElementById('updateVoterModal').classList.add('hidden');
+        }
+
+        function increaseUpdateCount() {
+            const input = document.getElementById('updateVoterCount');
+            const current = parseInt(input.value) || 0;
+            if (current < 20) {
+                input.value = current + 1;
+            }
+        }
+
+        function decreaseUpdateCount() {
+            const input = document.getElementById('updateVoterCount');
+            const current = parseInt(input.value) || 0;
+            if (current > 0) {
+                input.value = current - 1;
+            }
+        }
+
+        async function submitUpdateVoterCount() {
+            const newCount = parseInt(document.getElementById('updateVoterCount').value) || 0;
+            
+            if (!db || !currentUser) return;
+            
+            try {
+                await db.collection('users').doc(currentUser.id).update({
+                    voterCount: newCount,
+                    voted: newCount > 0,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                currentUser.voterCount = newCount;
+                currentUser.voted = newCount > 0;
+                
+                hideUpdateVoterCount();
+                showStatus('Voter count updated successfully! ✅', 'success');
+                showDashboard(); // Refresh display
+                
+            } catch (error) {
+                console.error('Update error:', error);
+                alert('Failed to update voter count. Please try again.');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('currentUserFlat');
+            currentUser = null;
+            location.reload();
+        }
+    </script>
+</body>
+</html>
